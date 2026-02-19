@@ -1,0 +1,26 @@
+# 민감 정보
+.env
+
+# 데이터베이스
+db/
+*.db
+
+# 로그
+logs/
+
+# 캐시
+cache/
+
+# 리포트 출력물
+reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/

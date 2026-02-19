@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코스닥 세력 매집 리포트 {{ scan_date }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+         background: #f0f2f5; color: #333; padding: 20px; }
+  .container { max-width: 1400px; margin: 0 auto; }
+
+  /* 헤더 */
+  .header { background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white; padding: 24px 30px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; margin-bottom: 6px; }
+  .header .meta { font-size: 13px; opacity: 0.8; }
+
+  /* 요약 카드 */
+  .summary { display: flex; gap: 16px; margin-bottom: 20px; }
+  .card { background: white; border-radius: 10px; padding: 16px 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex: 1; text-align: center; }
+  .card .num { font-size: 28px; font-weight: bold; color: #2a5298; }
+  .card .label { font-size: 12px; color: #888; margin-top: 4px; }
+
+  /* 테이블 */
+  .table-wrap { background: white; border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: #1e3c72; color: white; padding: 12px 14px;
+             text-align: center; font-size: 12px; font-weight: 600; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
+             font-size: 13px; text-align: center; }
+  tbody tr:hover { background: #f8f9ff; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* 점수 */
+  .score-high { color: #e74c3c; font-weight: bold; font-size: 15px; }
+  .score-mid  { color: #e67e22; font-weight: bold; }
+  .score-low  { color: #27ae60; font-weight: bold; }
+
+  /* 섹터 배지 */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px;
+           font-size: 11px; font-weight: 600; }
+  .badge-bio  { background: #fde8e8; color: #c0392b; }
+  .badge-robot { background: #e8f4fd; color: #2980b9; }
+  .badge-ai   { background: #eafaf1; color: #27ae60; }
+  .badge-bat  { background: #fef9e7; color: #d4ac0d; }
+  .badge-etc  { background: #f2f3f4; color: #7f8c8d; }
+
+  /* 신호 점수 바 */
+  .sig-bar { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+  .sig-bar-fill { height: 6px; background: #3498db; border-radius: 3px; }
+
+  /* 차트 섹션 */
+  .charts-section h2 { font-size: 18px; color: #2c3e50; margin-bottom: 12px; }
+  .chart-card { background: white; border-radius: 12px; padding: 16px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .chart-card h3 { font-size: 15px; color: #2c3e50; margin-bottom: 10px; }
+  .chart-card img { width: 100%; border-radius: 6px; }
+
+  /* 경고문 */
+  .disclaimer { font-size: 11px; color: #aaa; text-align: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <h1>📊 코스닥 세력 매집 감지 리포트</h1>
+    <div class="meta">
+      스캔일: <strong>{{ scan_date }}</strong> &nbsp;|&nbsp;
+      생성: {{ generated_at }} &nbsp;|&nbsp;
+      감지 종목: <strong>{{ total_count }}</strong>개
+    </div>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="summary">
+    <div class="card">
+      <div class="num">{{ total_count }}</div>
+      <div class="label">감지 종목 수</div>
+    </div>
+    <div class="card">
+      <div class="num">
+        {% if rows %}{{ rows[0].total_score }}{% else %}–{% endif %}
+      </div>
+      <div class="label">최고 점수</div>
+    </div>
+    <div class="card">
+      <div class="num">
+        {% if rows %}
+          {{ (rows | map(attribute='total_score') | list | sum / rows | length) | round(1) }}
+        {% else %}–{% endif %}
+      </div>
+      <div class="label">평균 점수</div>
+    </div>
+    <div class="card">
+      <div class="num">
+        {% set bio = rows | selectattr('sector','equalto','바이오') | list | length %}
+        {{ bio }}
+      </div>
+      <div class="label">바이오 종목</div>
+    </div>
+  </div>
+
+  <!-- 메인 테이블 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>순위</th><th>코드</th><th>종목명</th><th>총점</th>
+          <th>섹터</th><th>시총(억)</th><th>현재가</th>
+          <th>OBV다이버</th><th>거래량비대칭</th><th>박스권</th>
+          <th>MA정배열</th><th>기관매수</th><th>DART</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in rows %}
+      {% set score = row.total_score %}
+      <tr>
+        <td>
+          {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈
+          {% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+        </td>
+        <td><strong>{{ row.ticker }}</strong></td>
+        <td style="text-align:left">{{ row.name }}</td>
+        <td>
+          <span class="{{ 'score-high' if score >= 75 else ('score-mid' if score >= 60 else 'score-low') }}">
+            {{ score }}
+          </span>
+        </td>
+        <td>
+          {% set s = row.sector %}
+          <span class="badge {{ 'badge-bio' if s=='바이오' else ('badge-robot' if s=='로봇' else ('badge-ai' if s=='AI' else ('badge-bat' if s=='2차전지' else 'badge-etc'))) }}">
+            {{ s }}
+          </span>
+        </td>
+        <td>{{ row['market_cap_억'] }}</td>
+        <td>{{ "{:,}".format(row.close) }}원</td>
+        <td>{{ row.signals.get('obv_divergence', '–') }}</td>
+        <td>{{ row.signals.get('volume_asymmetry', '–') }}</td>
+        <td>{{ row.signals.get('box_range', '–') }}</td>
+        <td>{{ row.signals.get('ma_alignment', '–') }}</td>
+        <td>{{ row.signals.get('institutional_buying', '–') }}</td>
+        <td>{{ row.signals.get('dart_signal', '–') }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 차트 섹션 -->
+  {% if chart_files %}
+  <div class="charts-section">
+    <h2>📈 상위 종목 분석 차트 (60일)</h2>
+    {% for row in rows %}
+      {% if row.ticker in chart_files %}
+      <div class="chart-card">
+        <h3>[{{ row.ticker }}] {{ row.name }} &nbsp; 총점 {{ row.total_score }}점 | {{ row.sector }}</h3>
+        <img src="{{ chart_files[row.ticker] }}" alt="{{ row.name }} 60일 차트">
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p class="disclaimer">
+    ⚠ 본 리포트는 알고리즘 기반 투자 참고용입니다.
+    실제 투자 손익에 대한 책임은 본인에게 있으며, 종목 추천이 아닙니다.
+  </p>
+</div>
+</body>
+</html>

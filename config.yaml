@@ -1,0 +1,121 @@
+# ============================================================
+# 코스닥 세력 매집 감지 시스템 - 설정 파일
+# ============================================================
+
+# ── 유니버스 필터 ──────────────────────────────────────────
+universe:
+  market_cap_min: 100000000000   # 시총 최소 1,000억 원
+  market_cap_max: 300000000000   # 시총 최대 3,000억 원
+  float_ratio_min: 0.40          # 유동주식비율 최소 40%
+  float_ratio_max: 0.60          # 유동주식비율 최대 60%
+  sector_weights:
+    바이오: 1.5
+    제약: 1.5
+    로봇: 1.5
+    AI: 1.5
+    인공지능: 1.5
+    2차전지: 1.5
+    배터리: 1.5
+    전기차: 1.3
+    드론: 1.3
+    기타: 1.0
+
+# ── 데이터 수집 ───────────────────────────────────────────
+data:
+  ohlcv_days: 120            # OHLCV 수집 기간 (일)
+  history_years: 1           # 최초 실행 시 과거 데이터 수집 기간
+  cache_dir: "cache"
+  cache_ttl_hours: 6         # 캐시 유효 시간
+  retry_count: 3
+  retry_delay: 2             # API 재시도 대기 (초)
+  rate_limit_delay: 0.3      # API 호출 간격 (초)
+  failed_log: "logs/failed_tickers.log"
+
+# ── DART 공시 ─────────────────────────────────────────────
+dart:
+  api_key: ""                # dart.fss.or.kr 에서 발급
+  enabled: false
+  report_types:              # 수집할 공시 유형
+    - "CB"                   # 전환사채
+    - "BW"                   # 신주인수권부사채
+  lookback_days: 90          # 공시 조회 기간
+
+# ── 시그널 엔진 ───────────────────────────────────────────
+signals:
+  lookback_days: 60          # 분석 기간
+  slope_window: 60           # 선형회귀 기울기 계산 윈도우
+
+  # OBV Divergence
+  obv_slope_window: 60       # OBV 기울기 계산 윈도우
+
+  # 박스권 감지
+  box_window: 60             # 박스권 탐지 기간
+  bb_window: 20              # 볼린저밴드 기간
+  bb_std: 2.0                # 볼린저밴드 표준편차
+  box_threshold: 0.12        # 박스권 판정 변동폭 기준 (12%)
+
+  # 거래량 비대칭
+  volume_window: 20          # 거래량 비대칭 계산 기간
+  upper_wick_threshold: 0.6  # 윗꼬리 판정 기준
+  volume_up_threshold: 1.5   # 상승일 거래량 비율 기준
+
+  # 추가 지표
+  volume_ma_period: 20
+  volume_spike_ratio: 3.0
+  ma_short: 5
+  ma_mid: 20
+  ma_long: 60
+  rsi_period: 14
+  institutional_days: 5
+
+  # 신호별 가중치 (합계 = 100)
+  weights:
+    obv_divergence: 25        # OBV Divergence (매집 핵심)
+    volume_asymmetry: 20      # 거래량 비대칭
+    box_range: 15             # 박스권 매집
+    ma_alignment: 15          # 이동평균 정배열
+    institutional_buying: 15  # 기관/외국인 순매수
+    dart_signal: 10           # DART CB/BW 공시
+
+  min_score: 50              # 최소 종합 점수 (0-100)
+  top_n: 20                  # 결과 상위 N개
+
+# ── 백테스터 ──────────────────────────────────────────────
+backtest:
+  forward_days: [10, 20, 30] # 시그널 후 수익률 측정 기간
+  min_score_threshold: 60    # 백테스트 진입 점수 기준
+  history_months: 12         # 백테스트 기간 (개월)
+
+# ── 리포트 ────────────────────────────────────────────────
+report:
+  output_dir: "reports"
+  template_dir: "templates"
+  chart_dpi: 100
+  chart_width: 14
+  chart_height: 10
+
+# ── 텔레그램 ──────────────────────────────────────────────
+telegram:
+  enabled: true
+  token: ""                  # .env 파일의 TELEGRAM_TOKEN 환경변수 사용
+  chat_id: ""                # .env 파일의 TELEGRAM_CHAT_ID 환경변수 사용
+  send_charts: true          # 차트 이미지 전송 여부
+  max_chart_stocks: 5        # 차트 전송 최대 종목 수
+
+# ── 데이터베이스 ──────────────────────────────────────────
+database:
+  path: "db/stock_history.db"
+
+# ── 스케줄러 ──────────────────────────────────────────────
+scheduler:
+  hour: 18
+  minute: 0
+  timezone: "Asia/Seoul"
+
+# ── 로깅 ──────────────────────────────────────────────────
+logging:
+  level: "INFO"
+  dir: "logs"
+  filename: "scanner.log"
+  max_bytes: 10485760        # 10MB
+  backup_count: 5
