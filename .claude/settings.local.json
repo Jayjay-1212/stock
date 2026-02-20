@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python -c:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python main.py:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(powershell -Command \"Get-Content ''D:\\\\stock\\\\logs\\\\scanner.log'' -Tail 50\")",
+      "Bash(powershell -Command:*)",
+      "Bash(tasklist:*)",
+      "Bash(cmd /c tasklist /fi \"IMAGENAME eq python.exe\")",
+      "Bash(cmd /c \"tasklist | findstr python\")",
+      "Bash(cmd /c \"dir D:\\\\stock\\\\reports\\\\backtest*.csv\")",
+      "Bash(cmd /c \"dir D:\\\\stock\\\\reports\"\")",
+      "Skill(bkit:pdca)",
+      "Bash(git init:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

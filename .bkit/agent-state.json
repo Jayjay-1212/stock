@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "enabled": false,
+  "teamName": "",
+  "feature": "stock",
+  "pdcaPhase": "do",
+  "orchestrationPattern": "leader",
+  "ctoAgent": "opus",
+  "startedAt": "2026-02-19T16:34:30.616Z",
+  "lastUpdated": "2026-02-19T17:01:02.379Z",
+  "teammates": [],
+  "progress": {
+    "totalTasks": 0,
+    "completedTasks": 0,
+    "inProgressTasks": 0,
+    "failedTasks": 0,
+    "pendingTasks": 0
+  },
+  "recentMessages": [
+    {
+      "from": "system",
+      "to": "all",
+      "content": "Phase check → act (auto-advanced)",
+      "timestamp": "2026-02-19T16:44:22.770Z"
+    }
+  ],
+  "sessionId": "522e67f4-9276-44c4-b31d-43f65f231647"
+}
